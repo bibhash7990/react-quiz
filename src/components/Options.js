@@ -1,10 +1,6 @@
 function Options({ question, dispatch, answer }) {
   const hasAnswered = answer !== null;
 
-  const handleOptionSelect = (index) => {
-    dispatch({ type: "newAnswer", payload: index });
-  };
-
   return (
     <div className="options">
       {question.options.map((option, index) => (
@@ -18,7 +14,7 @@ function Options({ question, dispatch, answer }) {
           }`}
           key={option}
           disabled={hasAnswered}
-          onClick={() => handleOptionSelect(index)}
+          onClick={() => dispatch({ type: "newAnswer", payload: index })}
         >
           {option}
         </button>

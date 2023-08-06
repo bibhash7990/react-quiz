@@ -1,4 +1,5 @@
 import { useEffect, useReducer } from "react";
+
 import Header from "./Header";
 import Main from "./Main";
 import Loader from "./Loader";
@@ -7,29 +8,42 @@ import StartScreen from "./StartScreen";
 import Question from "./Question";
 import NextButton from "./NextButton";
 import Progress from "./Progress";
-import FinishedScreen from "./FinishedScreen";
+import FinishScreen from "./FinishScreen";
+import Footer from "./Footer";
 
 const initialState = {
   questions: [],
 
-  // 'loading',"error","ready","active","finished"
+  // 'loading', 'error', 'ready', 'active', 'finished'
   status: "loading",
   index: 0,
   answer: null,
   points: 0,
   highscore: 0,
+  secondsRemaining: null,
 };
 
 function reducer(state, action) {
   switch (action.type) {
     case "dataReceived":
-      return { ...state, questions: action.payload, status: "ready" };
+      return {
+        ...state,
+        questions: action.payload,
+        status: "ready",
+      };
     case "dataFailed":
-      return { ...state, status: "error" };
+      return {
+        ...state,
+        status: "error",
+      };
     case "start":
-      return { ...state, status: "active" };
+      return {
+        ...state,
+        status: "active",
+      };
     case "newAnswer":
       const question = state.questions.at(state.index);
+
       return {
         ...state,
         answer: action.payload,
@@ -47,8 +61,19 @@ function reducer(state, action) {
         highscore:
           state.points > state.highscore ? state.points : state.highscore,
       };
+    case "restart":
+      return { ...initialState, questions: state.questions, status: "ready" };
+    // return {
+    //   ...state,
+    //   points: 0,
+    //   highscore: 0,
+    //   index: 0,
+    //   answer: null,
+    //   status: "ready",
+    // };
+
     default:
-      throw new Error("Action unknown");
+      throw new Error("Action unkonwn");
   }
 }
 
@@ -65,9 +90,7 @@ export default function App() {
   useEffect(function () {
     fetch("http://localhost:8000/questions")
       .then((res) => res.json())
-      .then((data) => {
-        dispatch({ type: "dataReceived", payload: data });
-      })
+      .then((data) => dispatch({ type: "dataReceived", payload: data }))
       .catch((err) => dispatch({ type: "dataFailed" }));
   }, []);
 
@@ -85,7 +108,7 @@ export default function App() {
           <>
             <Progress
               index={index}
-              numQuestion={numQuestions}
+              numQuestions={numQuestions}
               points={points}
               maxPossiblePoints={maxPossiblePoints}
               answer={answer}
@@ -95,19 +118,22 @@ export default function App() {
               dispatch={dispatch}
               answer={answer}
             />
-            <NextButton
-              dispatch={dispatch}
-              answer={answer}
-              index={index}
-              numQuestions={numQuestions}
-            />
+            <Footer>
+              <NextButton
+                dispatch={dispatch}
+                answer={answer}
+                numQuestions={numQuestions}
+                index={index}
+              />
+            </Footer>
           </>
         )}
         {status === "finished" && (
-          <FinishedScreen
+          <FinishScreen
             points={points}
             maxPossiblePoints={maxPossiblePoints}
             highscore={highscore}
+            dispatch={dispatch}
           />
         )}
       </Main>
